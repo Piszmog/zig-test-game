@@ -82,6 +82,41 @@ pub const Renderer = struct {
         c.SDL_RenderPresent(self.sdl_renderer);
     }
 
+    /// Draw a point on the current rendering target.
+    pub fn drawPoint(self: *const Renderer, x: i32, y: i32) !void {
+        if (c.SDL_RenderDrawPoint(self.sdl_renderer, x, y) != 0) {
+            std.debug.print("failed to draw point: {s}\n", .{getError()});
+            return error.RendererError;
+        }
+    }
+
+    /// Draw multiple points on the current rendering target.
+    pub fn drawPoints(self: *const Renderer, points: []const Point) !void {
+        const gpa = std.heap.GeneralPurposeAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer gpa.deinit();
+
+        const sdl_points: [*c]const c.SDL_Point = try allocator(c.SDL_Point, points.len);
+        defer allocator.free(sdl_points);
+
+        for (points, 0..) |p, i| {
+            sdl_points[i] = c.SDL_Point{ .x = p.x, .y = p.y };
+        }
+
+        if (c.SDL_RenderDrawPoints(self.sdl_renderer, sdl_points) != 0) {
+            std.debug.print("failed to draw point: {s}\n", .{getError()});
+            return error.RendererError;
+        }
+    }
+
+    /// Draw a line on the current rendering target.
+    pub fn drawLine(self: *const Renderer, x1: i32, y1: i32, x2: i32, y2: i32) !void {
+        if (c.SDL_RenderDrawLine(self.sdl_renderer, x1, y1, x2, y2) != 0) {
+            std.debug.print("failed to draw line: {s}\n", .{getError()});
+            return error.RendererError;
+        }
+    }
+
     /// Fill a rectangle on the current rendering target with the drawing color.
     pub fn fillRect(self: *const Renderer, rect: *Rect) !void {
         if (c.SDL_RenderFillRect(self.sdl_renderer, &rect.sdl_rect) != 0) {
@@ -112,6 +147,11 @@ pub fn getTicks() u32 {
 pub fn getError() []const u8 {
     return cStringToSlice(c.SDL_GetError());
 }
+
+pub const Point = struct {
+    x: i32,
+    y: i32,
+};
 
 /// A rectangle, with the origin at the upper left (integer).
 pub const Rect = struct {
