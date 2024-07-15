@@ -92,18 +92,20 @@ pub const Renderer = struct {
 
     /// Draw multiple points on the current rendering target.
     pub fn drawPoints(self: *const Renderer, points: []const Point) !void {
-        const gpa = std.heap.GeneralPurposeAllocator(.{}){};
+        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
         const allocator = gpa.allocator();
-        defer gpa.deinit();
+        defer {
+            _ = gpa.deinit();
+        }
 
-        const sdl_points: [*c]const c.SDL_Point = try allocator(c.SDL_Point, points.len);
+        var sdl_points: []c.SDL_Point = try allocator.alloc(c.SDL_Point, points.len);
         defer allocator.free(sdl_points);
 
         for (points, 0..) |p, i| {
             sdl_points[i] = c.SDL_Point{ .x = p.x, .y = p.y };
         }
 
-        if (c.SDL_RenderDrawPoints(self.sdl_renderer, sdl_points) != 0) {
+        if (c.SDL_RenderDrawPoints(self.sdl_renderer, sdl_points.ptr, @intCast(points.len)) != 0) {
             std.debug.print("failed to draw point: {s}\n", .{getError()});
             return error.RendererError;
         }
