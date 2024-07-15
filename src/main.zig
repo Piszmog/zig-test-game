@@ -23,28 +23,14 @@ pub fn main() !void {
         try renderer.setDrawColor(0xff, 0xff, 0xff, 0xff);
         try renderer.clear();
 
-        var rect = sdl.Rect.init(0, 0, 60, 60);
-        const a = 0.001 * @as(f32, @floatFromInt(sdl.getTicks()));
-        const t = 2 * std.math.pi / 3.0;
-        const r = 100 * @cos(0.1 * a);
-
-        rect.setX(290 + @as(i32, @intFromFloat(r * @cos(a))));
-        rect.setY(170 + @as(i32, @intFromFloat(r * @sin(a))));
-        // Red
         try renderer.setDrawColor(0xff, 0, 0, 0xff);
-        try renderer.fillRect(&rect);
+        try renderer.drawRect(20, 20, 10, 10);
+        try renderer.fillRect(10, 10, 10, 10);
 
-        rect.setX(290 + @as(i32, @intFromFloat(r * @cos(a + t))));
-        rect.setY(170 + @as(i32, @intFromFloat(r * @sin(a + t))));
-        // Green
-        try renderer.setDrawColor(0, 0xff, 0, 0xff);
-        try renderer.fillRect(&rect);
-
-        rect.setX(290 + @as(i32, @intFromFloat(r * @cos(a + 2 * t))));
-        rect.setY(170 + @as(i32, @intFromFloat(r * @sin(a + 2 * t))));
-        // Blue
-        try renderer.setDrawColor(0, 0, 0xff, 0xff);
-        try renderer.fillRect(&rect);
+        const rects = [_]sdl.Rect{
+            .{ .x = 30, .y = 30, .width = 10, .height = 10 },
+        };
+        try renderer.drawRects(&rects);
 
         renderer.present();
     }

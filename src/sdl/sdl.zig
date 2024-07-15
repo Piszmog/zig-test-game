@@ -106,7 +106,7 @@ pub const Renderer = struct {
         }
 
         if (c.SDL_RenderDrawPoints(self.sdl_renderer, sdl_points.ptr, @intCast(points.len)) != 0) {
-            std.debug.print("failed to draw point: {s}\n", .{getError()});
+            std.debug.print("failed to draw points: {s}\n", .{getError()});
             return error.RendererError;
         }
     }
@@ -119,9 +119,61 @@ pub const Renderer = struct {
         }
     }
 
+    /// Draw a series of connected lines on the current rendering target.
+    pub fn drawLines(self: *const Renderer, points: []const Point) !void {
+        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            _ = gpa.deinit();
+        }
+
+        var sdl_points: []c.SDL_Point = try allocator.alloc(c.SDL_Point, points.len);
+        defer allocator.free(sdl_points);
+
+        for (points, 0..) |p, i| {
+            sdl_points[i] = c.SDL_Point{ .x = p.x, .y = p.y };
+        }
+
+        if (c.SDL_RenderDrawLines(self.sdl_renderer, sdl_points.ptr, @intCast(points.len)) != 0) {
+            std.debug.print("failed to draw lines: {s}\n", .{getError()});
+            return error.RendererError;
+        }
+    }
+
+    /// Draw a line on the current rendering target.
+    pub fn drawRect(self: *const Renderer, x: i32, y: i32, width: i32, height: i32) !void {
+        const rect = c.SDL_Rect{ .x = x, .y = y, .w = width, .h = height };
+        if (c.SDL_RenderDrawRect(self.sdl_renderer, &rect) != 0) {
+            std.debug.print("failed to draw rect: {s}\n", .{getError()});
+            return error.RendererError;
+        }
+    }
+
+    /// Draw a series of connected lines on the current rendering target.
+    pub fn drawRects(self: *const Renderer, rects: []const Rect) !void {
+        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+        const allocator = gpa.allocator();
+        defer {
+            _ = gpa.deinit();
+        }
+
+        var sdl_rects: []c.SDL_Rect = try allocator.alloc(c.SDL_Rect, rects.len);
+        defer allocator.free(sdl_rects);
+
+        for (rects, 0..) |r, i| {
+            sdl_rects[i] = c.SDL_Rect{ .x = r.x, .y = r.y, .w = r.width, .h = r.height };
+        }
+
+        if (c.SDL_RenderDrawRects(self.sdl_renderer, sdl_rects.ptr, @intCast(rects.len)) != 0) {
+            std.debug.print("failed to draw rects: {s}\n", .{getError()});
+            return error.RendererError;
+        }
+    }
+
     /// Fill a rectangle on the current rendering target with the drawing color.
-    pub fn fillRect(self: *const Renderer, rect: *Rect) !void {
-        if (c.SDL_RenderFillRect(self.sdl_renderer, &rect.sdl_rect) != 0) {
+    pub fn fillRect(self: *const Renderer, x: i32, y: i32, width: i32, height: i32) !void {
+        const rect = c.SDL_Rect{ .x = x, .y = y, .w = width, .h = height };
+        if (c.SDL_RenderFillRect(self.sdl_renderer, &rect) != 0) {
             std.debug.print("failed to fill rect: {s}\n", .{getError()});
             return error.RendererError;
         }
@@ -157,27 +209,10 @@ pub const Point = struct {
 
 /// A rectangle, with the origin at the upper left (integer).
 pub const Rect = struct {
-    sdl_rect: c.SDL_Rect,
-
-    /// Creates a new rectangle.
-    pub fn init(x: i32, y: i32, width: i32, height: i32) Rect {
-        return Rect{ .sdl_rect = c.SDL_Rect{
-            .x = x,
-            .y = y,
-            .w = width,
-            .h = height,
-        } };
-    }
-
-    /// Sets the x position.
-    pub fn setX(self: *Rect, x: i32) void {
-        self.sdl_rect.x = x;
-    }
-
-    /// Sets the y position.
-    pub fn setY(self: *Rect, y: i32) void {
-        self.sdl_rect.y = y;
-    }
+    x: i32,
+    y: i32,
+    width: i32,
+    height: i32,
 };
 
 /// General event structure.
