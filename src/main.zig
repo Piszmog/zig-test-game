@@ -11,11 +11,23 @@ pub fn main() !void {
     const renderer = try sdl.Renderer.init(&window, 0, sdl.RendererFlag.PresentVSync);
     defer renderer.cleanup();
 
+    var posX: i32 = 320;
+    var posY: i32 = 200;
+
     mainloop: while (true) {
         var event: sdl.Event = undefined;
         while (event.poll()) {
             switch (event.getType()) {
                 sdl.EventType.Quit => break :mainloop,
+                sdl.EventType.Keydown => {
+                    switch (event.getKeyCode()) {
+                        sdl.KeyCode.Up => posY -= 5,
+                        sdl.KeyCode.Down => posY += 5,
+                        sdl.KeyCode.Left => posX -= 5,
+                        sdl.KeyCode.Right => posX += 5,
+                        else => {},
+                    }
+                },
                 else => {},
             }
         }
@@ -24,13 +36,7 @@ pub fn main() !void {
         try renderer.clear();
 
         try renderer.setDrawColor(0xff, 0, 0, 0xff);
-        try renderer.drawRect(20, 20, 10, 10);
-        try renderer.fillRect(10, 10, 10, 10);
-
-        const rects = [_]sdl.Rect{
-            .{ .x = 30, .y = 30, .width = 10, .height = 10 },
-        };
-        try renderer.drawRects(&rects);
+        try renderer.fillRect(posX, posY, 10, 10);
 
         renderer.present();
     }

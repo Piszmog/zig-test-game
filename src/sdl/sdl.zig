@@ -229,14 +229,27 @@ pub const Event = struct {
     pub fn getType(self: Event) EventType {
         return switch (self.sdl_event.type) {
             c.SDL_QUIT => EventType.Quit,
+            c.SDL_KEYDOWN => EventType.Keydown,
             else => EventType.Unknown,
+        };
+    }
+
+    pub fn getKeyCode(self: Event) KeyCode {
+        return switch (self.sdl_event.key.keysym.sym) {
+            c.SDLK_UP => KeyCode.Up,
+            c.SDLK_DOWN => KeyCode.Down,
+            c.SDLK_LEFT => KeyCode.Left,
+            c.SDLK_RIGHT => KeyCode.Right,
+            else => KeyCode.Unknown,
         };
     }
 };
 
 /// The different type of events that can occur.
 pub const EventType = enum {
-    /// USer requested quit.
+    /// Key pressed.
+    Keydown,
+    /// User requested quit.
     Quit,
     /// Event not yet covered by the enum.
     Unknown,
@@ -253,3 +266,12 @@ fn cStringToSlice(c_str: [*c]const u8) []const u8 {
     // Create a Zig slice
     return c_str[0..length];
 }
+
+/// The SDL virtual key representation.
+pub const KeyCode = enum {
+    Up,
+    Down,
+    Left,
+    Right,
+    Unknown,
+};
