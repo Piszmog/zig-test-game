@@ -209,20 +209,24 @@ pub const Point = struct {
 pub const Rect = struct {
     sdl_rect: c.SDL_Rect,
 
+    /// Creates a new instance of the rect.
     pub fn init(x: i32, y: i32, width: i32, height: i32) Rect {
         return Rect{ .sdl_rect = c.SDL_Rect{ .x = x, .y = y, .w = width, .h = height } };
     }
 };
 
+/// Contains information about velocity.
 pub const Velocity = struct {
     x: i32,
     y: i32,
 };
 
+/// A rigid body contains information about the rectangle and it's velocity.
 pub const RigidBody = struct {
     rect: Rect,
     velocity: Velocity,
 
+    /// Creates a new rigid body based on the provided rect.
     pub fn init(rect: Rect) RigidBody {
         return RigidBody{
             .rect = rect,
@@ -233,12 +237,14 @@ pub const RigidBody = struct {
         };
     }
 
+    /// Moves the position of the rigid body based on velocity.
     pub fn move(self: *RigidBody) void {
         self.rect.sdl_rect.x += self.velocity.x;
         self.rect.sdl_rect.y += self.velocity.y;
     }
 };
 
+/// Determines if two rigid bodies will collide into one another.
 pub fn will_collide(body_1: RigidBody, body_2: RigidBody) bool {
     return body_1.rect.sdl_rect.x + body_1.velocity.x < body_2.rect.sdl_rect.x + body_2.velocity.x + body_2.rect.sdl_rect.w and
         body_1.rect.sdl_rect.x + body_1.velocity.x + body_1.rect.sdl_rect.w > body_2.rect.sdl_rect.x + body_2.velocity.x and
