@@ -245,12 +245,51 @@ pub const RigidBody = struct {
 };
 
 /// Determines if two rigid bodies will collide into one another.
-pub fn will_collide(body_1: RigidBody, body_2: RigidBody) bool {
+pub fn has_collision(body_1: RigidBody, body_2: RigidBody) bool {
     return body_1.rect.sdl_rect.x + body_1.velocity.x < body_2.rect.sdl_rect.x + body_2.velocity.x + body_2.rect.sdl_rect.w and
         body_1.rect.sdl_rect.x + body_1.velocity.x + body_1.rect.sdl_rect.w > body_2.rect.sdl_rect.x + body_2.velocity.x and
         body_1.rect.sdl_rect.y + body_1.velocity.y < body_2.rect.sdl_rect.y + body_2.velocity.y + body_2.rect.sdl_rect.h and
         body_1.rect.sdl_rect.y + body_1.velocity.y + body_1.rect.sdl_rect.h > body_2.rect.sdl_rect.y + body_2.velocity.y;
 }
+
+pub fn check_collision(body_1: RigidBody, body_2: RigidBody) CollisionDirection {
+    const future_1_x = body_1.rect.sdl_rect.x + body_1.velocity.x;
+    const future_1_y = body_1.rect.sdl_rect.y + body_1.velocity.y;
+    const future_2_x = body_2.rect.sdl_rect.x + body_2.velocity.x;
+    const future_2_y = body_2.rect.sdl_rect.y + body_2.velocity.y;
+
+    if (!(future_1_x < future_2_x + body_2.rect.sdl_rect.w and
+        future_1_x + body_1.rect.sdl_rect.w > future_2_x and
+        future_1_y < future_2_y + body_2.rect.sdl_rect.h and
+        future_1_y + body_1.rect.sdl_rect.h > future_2_y))
+    {
+        return CollisionDirection.None;
+    }
+
+    const overlap_x_1 = future_2_x + body_2.rect.sdl_rect.w - future_1_x;
+    const overlap_x_2 = future_1_x + body_1.rect.sdl_rect.w - future_2_x;
+    const overlap_y_1 = future_2_y + body_2.rect.sdl_rect.w - future_1_y;
+    const overlap_y_2 = future_1_y + body_1.rect.sdl_rect.w - future_2_y;
+
+    const min_overlap_x = if (overlap_x_1 < overlap_x_2) overlap_x_1 else overlap_x_2;
+    const min_overlap_y = if (overlap_y_1 < overlap_y_2) overlap_y_1 else overlap_y_2;
+
+    if (min_overlap_x < min_overlap_y) {
+        if (overlap_x_1 < overlap_x_2) {
+            return CollisionDirection.Left;
+        } else {
+            return CollisionDirection.Right;
+        }
+    } else {
+        if (overlap_y_1 < overlap_y_2) {
+            return CollisionDirection.Top;
+        } else {
+            return CollisionDirection.Bottom;
+        }
+    }
+}
+
+pub const CollisionDirection = enum { None, Top, Bottom, Left, Right };
 
 /// General event structure.
 pub const Event = struct {
