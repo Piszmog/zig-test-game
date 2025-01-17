@@ -83,8 +83,8 @@ pub const Renderer = struct {
     }
 
     /// Draw a point on the current rendering target.
-    pub fn drawPoint(self: *const Renderer, x: i32, y: i32) !void {
-        if (c.SDL_RenderDrawPoint(self.sdl_renderer, x, y) != 0) {
+    pub fn drawPoint(self: *const Renderer, point: Point) !void {
+        if (c.SDL_RenderDrawPoint(self.sdl_renderer, point.x, point.y) != 0) {
             std.debug.print("failed to draw point: {s}\n", .{getError()});
             return error.RendererError;
         }
@@ -112,8 +112,8 @@ pub const Renderer = struct {
     }
 
     /// Draw a line on the current rendering target.
-    pub fn drawLine(self: *const Renderer, x1: i32, y1: i32, x2: i32, y2: i32) !void {
-        if (c.SDL_RenderDrawLine(self.sdl_renderer, x1, y1, x2, y2) != 0) {
+    pub fn drawLine(self: *const Renderer, point1: Point, point2: Point) !void {
+        if (c.SDL_RenderDrawLine(self.sdl_renderer, point1.x, point1.y, point2.x, point2.y) != 0) {
             std.debug.print("failed to draw line: {s}\n", .{getError()});
             return error.RendererError;
         }
@@ -141,9 +141,8 @@ pub const Renderer = struct {
     }
 
     /// Draw a line on the current rendering target.
-    pub fn drawRect(self: *const Renderer, x: i32, y: i32, width: i32, height: i32) !void {
-        const rect = c.SDL_Rect{ .x = x, .y = y, .w = width, .h = height };
-        if (c.SDL_RenderDrawRect(self.sdl_renderer, &rect) != 0) {
+    pub fn drawRect(self: *const Renderer, rect: Rect) !void {
+        if (c.SDL_RenderDrawRect(self.sdl_renderer, &rect.sdl_rect) != 0) {
             std.debug.print("failed to draw rect: {s}\n", .{getError()});
             return error.RendererError;
         }
@@ -161,7 +160,7 @@ pub const Renderer = struct {
         defer allocator.free(sdl_rects);
 
         for (rects, 0..) |r, i| {
-            sdl_rects[i] = c.SDL_Rect{ .x = r.x, .y = r.y, .w = r.width, .h = r.height };
+            sdl_rects[i] = r.sdl_rect;
         }
 
         if (c.SDL_RenderDrawRects(self.sdl_renderer, sdl_rects.ptr, @intCast(rects.len)) != 0) {
@@ -171,9 +170,8 @@ pub const Renderer = struct {
     }
 
     /// Fill a rectangle on the current rendering target with the drawing color.
-    pub fn fillRect(self: *const Renderer, x: i32, y: i32, width: i32, height: i32) !void {
-        const rect = c.SDL_Rect{ .x = x, .y = y, .w = width, .h = height };
-        if (c.SDL_RenderFillRect(self.sdl_renderer, &rect) != 0) {
+    pub fn fillRect(self: *const Renderer, rect: Rect) !void {
+        if (c.SDL_RenderFillRect(self.sdl_renderer, &rect.sdl_rect) != 0) {
             std.debug.print("failed to fill rect: {s}\n", .{getError()});
             return error.RendererError;
         }
@@ -209,11 +207,44 @@ pub const Point = struct {
 
 /// A rectangle, with the origin at the upper left (integer).
 pub const Rect = struct {
+    sdl_rect: c.SDL_Rect,
+
+    pub fn init(x: i32, y: i32, width: i32, height: i32) Rect {
+        return Rect{ .sdl_rect = c.SDL_Rect{ .x = x, .y = y, .w = width, .h = height } };
+    }
+};
+
+pub const Velocity = struct {
     x: i32,
     y: i32,
-    width: i32,
-    height: i32,
 };
+
+pub const RigidBody = struct {
+    rect: Rect,
+    velocity: Velocity,
+
+    pub fn init(rect: Rect) RigidBody {
+        return RigidBody{
+            .rect = rect,
+            .velocity = Velocity{
+                .x = 0,
+                .y = 0,
+            },
+        };
+    }
+
+    pub fn move(self: *RigidBody) void {
+        self.rect.sdl_rect.x += self.velocity.x;
+        self.rect.sdl_rect.y += self.velocity.y;
+    }
+};
+
+pub fn will_collide(body_1: RigidBody, body_2: RigidBody) bool {
+    return body_1.rect.sdl_rect.x + body_1.velocity.x < body_2.rect.sdl_rect.x + body_2.velocity.x + body_2.rect.sdl_rect.w and
+        body_1.rect.sdl_rect.x + body_1.velocity.x + body_1.rect.sdl_rect.w > body_2.rect.sdl_rect.x + body_2.velocity.x and
+        body_1.rect.sdl_rect.y + body_1.velocity.y < body_2.rect.sdl_rect.y + body_2.velocity.y + body_2.rect.sdl_rect.h and
+        body_1.rect.sdl_rect.y + body_1.velocity.y + body_1.rect.sdl_rect.h > body_2.rect.sdl_rect.y + body_2.velocity.y;
+}
 
 /// General event structure.
 pub const Event = struct {
