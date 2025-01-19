@@ -94,9 +94,7 @@ pub const Renderer = struct {
     pub fn drawPoints(self: *const Renderer, points: []const Point) !void {
         var gpa = std.heap.GeneralPurposeAllocator(.{}){};
         const allocator = gpa.allocator();
-        defer {
-            _ = gpa.deinit();
-        }
+        defer _ = gpa.deinit();
 
         var sdl_points: []c.SDL_Point = try allocator.alloc(c.SDL_Point, points.len);
         defer allocator.free(sdl_points);
@@ -123,9 +121,7 @@ pub const Renderer = struct {
     pub fn drawLines(self: *const Renderer, points: []const Point) !void {
         var gpa = std.heap.GeneralPurposeAllocator(.{}){};
         const allocator = gpa.allocator();
-        defer {
-            _ = gpa.deinit();
-        }
+        defer _ = gpa.deinit();
 
         var sdl_points: []c.SDL_Point = try allocator.alloc(c.SDL_Point, points.len);
         defer allocator.free(sdl_points);
@@ -310,16 +306,37 @@ pub const Event = struct {
         };
     }
 
-    pub fn getKeyCode(self: Event) KeyCode {
+    pub fn getKeyCode(self: Event) KeyEvent {
         return switch (self.sdl_event.key.keysym.sym) {
-            c.SDLK_UP => KeyCode.Up,
-            c.SDLK_DOWN => KeyCode.Down,
-            c.SDLK_LEFT => KeyCode.Left,
-            c.SDLK_RIGHT => KeyCode.Right,
-            else => KeyCode.Unknown,
+            c.SDLK_UP => KeyEvent.Up,
+            c.SDLK_DOWN => KeyEvent.Down,
+            c.SDLK_LEFT => KeyEvent.Left,
+            c.SDLK_RIGHT => KeyEvent.Right,
+            else => KeyEvent.Unknown,
         };
     }
 };
+
+pub fn get_keyboard_state(allocator: std.mem.Allocator) ![]Scancode {
+    const key_state = c.SDL_GetKeyboardState(null);
+
+    var scancodes = std.ArrayList(Scancode).init(allocator);
+
+    if (key_state[c.SDL_SCANCODE_UP] == 1) {
+        try scancodes.append(Scancode.Up);
+    }
+    if (key_state[c.SDL_SCANCODE_DOWN] == 1) {
+        try scancodes.append(Scancode.Down);
+    }
+    if (key_state[c.SDL_SCANCODE_LEFT] == 1) {
+        try scancodes.append(Scancode.Left);
+    }
+    if (key_state[c.SDL_SCANCODE_RIGHT] == 1) {
+        try scancodes.append(Scancode.Right);
+    }
+
+    return scancodes.toOwnedSlice();
+}
 
 /// The different type of events that can occur.
 pub const EventType = enum {
@@ -344,10 +361,17 @@ fn cStringToSlice(c_str: [*c]const u8) []const u8 {
 }
 
 /// The SDL virtual key representation.
-pub const KeyCode = enum {
+pub const KeyEvent = enum {
     Up,
     Down,
     Left,
     Right,
     Unknown,
+};
+
+pub const Scancode = enum(c_int) {
+    Up,
+    Down,
+    Left,
+    Right,
 };

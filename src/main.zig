@@ -17,26 +17,33 @@ pub fn main() !void {
 
     const static_bodies = [_]sdl.RigidBody{ body_2, ground };
 
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    defer _ = gpa.deinit();
+
     mainloop: while (true) {
         var event: sdl.Event = undefined;
         while (event.poll()) {
             switch (event.getType()) {
                 sdl.EventType.Quit => break :mainloop,
-                sdl.EventType.Keydown => {
-                    switch (event.getKeyCode()) {
-                        sdl.KeyCode.Up => body_1.velocity.y = -25,
-                        sdl.KeyCode.Down => body_1.velocity.y = 5,
-                        sdl.KeyCode.Left => body_1.velocity.x = -5,
-                        sdl.KeyCode.Right => body_1.velocity.x = 5,
-                        else => {},
-                    }
-                },
                 else => {},
             }
         }
 
+        const scancodes = try sdl.get_keyboard_state(allocator);
+        defer allocator.free(scancodes);
+
+        for (scancodes) |scancode| {
+            switch (scancode) {
+                sdl.Scancode.Up => body_1.velocity.y = -5,
+                sdl.Scancode.Down => body_1.velocity.y = 5,
+                sdl.Scancode.Left => body_1.velocity.x = -5,
+                sdl.Scancode.Right => body_1.velocity.x = 5,
+            }
+        }
+
         if (body_1.velocity.y <= 0) {
-            body_1.velocity.y += 1;
+            body_1.velocity.y += 3;
         }
 
         try renderer.setDrawColor(0xff, 0xff, 0xff, 0xff);
