@@ -35,15 +35,15 @@ pub fn main() !void {
 
         for (scancodes) |scancode| {
             switch (scancode) {
-                sdl.Scancode.Up => body_1.velocity.y = -5,
-                sdl.Scancode.Down => body_1.velocity.y = 5,
-                sdl.Scancode.Left => body_1.velocity.x = -5,
-                sdl.Scancode.Right => body_1.velocity.x = 5,
+                sdl.Scancode.Up => body_1.velocity.y = -2,
+                sdl.Scancode.Down => body_1.velocity.y = 2,
+                sdl.Scancode.Left => body_1.velocity.x = -2,
+                sdl.Scancode.Right => body_1.velocity.x = 2,
             }
         }
 
         if (body_1.velocity.y <= 0) {
-            body_1.velocity.y += 3;
+            body_1.velocity.y += 1;
         }
 
         try renderer.setDrawColor(0xff, 0xff, 0xff, 0xff);
