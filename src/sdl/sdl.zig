@@ -263,9 +263,9 @@ pub fn check_collision(body_1: RigidBody, body_2: RigidBody) CollisionDirection 
     }
 
     const overlap_x_1 = future_2_x + body_2.rect.sdl_rect.w - future_1_x;
+    const overlap_y_1 = future_2_y + body_2.rect.sdl_rect.h - future_1_y;
     const overlap_x_2 = future_1_x + body_1.rect.sdl_rect.w - future_2_x;
-    const overlap_y_1 = future_2_y + body_2.rect.sdl_rect.w - future_1_y;
-    const overlap_y_2 = future_1_y + body_1.rect.sdl_rect.w - future_2_y;
+    const overlap_y_2 = future_1_y + body_1.rect.sdl_rect.h - future_2_y;
 
     const min_overlap_x = if (overlap_x_1 < overlap_x_2) overlap_x_1 else overlap_x_2;
     const min_overlap_y = if (overlap_y_1 < overlap_y_2) overlap_y_1 else overlap_y_2;
