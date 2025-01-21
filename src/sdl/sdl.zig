@@ -62,8 +62,8 @@ pub const Renderer = struct {
     }
 
     /// Set the color used for drawing operations (Rect, Line and Clear).
-    pub fn setDrawColor(self: *const Renderer, red: u8, green: u8, blue: u8, alpha: u8) !void {
-        if (c.SDL_SetRenderDrawColor(self.sdl_renderer, red, green, blue, alpha) != 0) {
+    pub fn setDrawColor(self: *const Renderer, color: Color) !void {
+        if (c.SDL_SetRenderDrawColor(self.sdl_renderer, color.red, color.green, color.blue, color.alpha) != 0) {
             std.debug.print("failed to draw color: {s}\n", .{getError()});
             return error.RendererError;
         }
@@ -204,12 +204,15 @@ pub const Point = struct {
 /// A rectangle, with the origin at the upper left (integer).
 pub const Rect = struct {
     sdl_rect: c.SDL_Rect,
+    color: Color,
 
     /// Creates a new instance of the rect.
-    pub fn init(x: i32, y: i32, width: i32, height: i32) Rect {
-        return Rect{ .sdl_rect = c.SDL_Rect{ .x = x, .y = y, .w = width, .h = height } };
+    pub fn init(x: i32, y: i32, width: i32, height: i32, color: Color) Rect {
+        return Rect{ .sdl_rect = c.SDL_Rect{ .x = x, .y = y, .w = width, .h = height }, .color = color };
     }
 };
+
+pub const Color = struct { red: u8, green: u8, blue: u8, alpha: u8 };
 
 /// Contains information about velocity.
 pub const Velocity = struct {
@@ -312,6 +315,7 @@ pub const Event = struct {
             c.SDLK_DOWN => KeyEvent.Down,
             c.SDLK_LEFT => KeyEvent.Left,
             c.SDLK_RIGHT => KeyEvent.Right,
+            c.SDLK_SPACE => KeyEvent.Space,
             else => KeyEvent.Unknown,
         };
     }
@@ -321,6 +325,7 @@ pub fn get_keyboard_state(allocator: std.mem.Allocator) ![]Scancode {
     const key_state = c.SDL_GetKeyboardState(null);
 
     var scancodes = std.ArrayList(Scancode).init(allocator);
+    defer scancodes.deinit();
 
     if (key_state[c.SDL_SCANCODE_UP] == 1) {
         try scancodes.append(Scancode.Up);
@@ -366,6 +371,7 @@ pub const KeyEvent = enum {
     Down,
     Left,
     Right,
+    Space,
     Unknown,
 };
 
