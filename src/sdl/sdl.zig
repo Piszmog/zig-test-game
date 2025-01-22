@@ -290,6 +290,15 @@ pub fn check_collision(body_1: RigidBody, body_2: RigidBody) CollisionDirection 
 
 pub const CollisionDirection = enum { None, Top, Bottom, Left, Right };
 
+pub const Character = struct {
+    body: RigidBody,
+    health: i8,
+
+    pub fn init(body: RigidBody) Character {
+        return Character{ .body = body, .health = 100 };
+    }
+};
+
 /// General event structure.
 pub const Event = struct {
     sdl_event: c.SDL_Event,
