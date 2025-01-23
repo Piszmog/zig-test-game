@@ -91,11 +91,7 @@ pub const Renderer = struct {
     }
 
     /// Draw multiple points on the current rendering target.
-    pub fn drawPoints(self: *const Renderer, points: []const Point) !void {
-        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-        const allocator = gpa.allocator();
-        defer _ = gpa.deinit();
-
+    pub fn drawPoints(self: *const Renderer, allocator: std.mem.Allocator, points: []const Point) !void {
         var sdl_points: []c.SDL_Point = try allocator.alloc(c.SDL_Point, points.len);
         defer allocator.free(sdl_points);
 
@@ -118,11 +114,7 @@ pub const Renderer = struct {
     }
 
     /// Draw a series of connected lines on the current rendering target.
-    pub fn drawLines(self: *const Renderer, points: []const Point) !void {
-        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-        const allocator = gpa.allocator();
-        defer _ = gpa.deinit();
-
+    pub fn drawLines(self: *const Renderer, allocator: std.mem.Allocator, points: []const Point) !void {
         var sdl_points: []c.SDL_Point = try allocator.alloc(c.SDL_Point, points.len);
         defer allocator.free(sdl_points);
 
@@ -145,13 +137,7 @@ pub const Renderer = struct {
     }
 
     /// Draw a series of connected lines on the current rendering target.
-    pub fn drawRects(self: *const Renderer, rects: []const Rect) !void {
-        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-        const allocator = gpa.allocator();
-        defer {
-            _ = gpa.deinit();
-        }
-
+    pub fn drawRects(self: *const Renderer, allocator: std.mem.Allocator, rects: []const Rect) !void {
         var sdl_rects: []c.SDL_Rect = try allocator.alloc(c.SDL_Rect, rects.len);
         defer allocator.free(sdl_rects);
 
@@ -201,6 +187,25 @@ pub const Point = struct {
     y: i32,
 };
 
+pub const Color = struct {
+    red: u8,
+    green: u8,
+    blue: u8,
+    alpha: u8,
+
+    pub fn red() Color {
+        return Color{ .red = 0xff, .green = 0, .blue = 0, .alpha = 0xff };
+    }
+
+    pub fn green() Color {
+        return Color{ .red = 0, .green = 0xff, .blue = 0, .alpha = 0xff };
+    }
+
+    pub fn blue() Color {
+        return Color{ .red = 0, .green = 0, .blue = 0xff, .alpha = 0xff };
+    }
+};
+
 /// A rectangle, with the origin at the upper left (integer).
 pub const Rect = struct {
     sdl_rect: c.SDL_Rect,
@@ -211,8 +216,6 @@ pub const Rect = struct {
         return Rect{ .sdl_rect = c.SDL_Rect{ .x = x, .y = y, .w = width, .h = height }, .color = color };
     }
 };
-
-pub const Color = struct { red: u8, green: u8, blue: u8, alpha: u8 };
 
 /// Contains information about velocity.
 pub const Velocity = struct {
