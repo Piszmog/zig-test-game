@@ -1,6 +1,6 @@
 const std = @import("std");
 const sdl = @import("sdl/sdl.zig");
-const levels = @import("level");
+const level_10 = @import("level/level_10.zig");
 
 pub fn main() !void {
     sdl.init();
@@ -15,5 +15,9 @@ pub fn main() !void {
     //try level_1.movement(renderer);
     //try level_2.collisions(renderer);
     //try level_5.shooting(renderer);
-    try levels.health(renderer);
+    //try level_6.health(renderer);
+    //try level_7.mouse(renderer);
+    //try level_8.click_obj(renderer);
+    //try level_9.move_obj(renderer);
+    try level_10.drag_obj(renderer);
 }

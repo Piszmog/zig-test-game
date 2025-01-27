@@ -291,6 +291,11 @@ pub fn check_collision(body_1: RigidBody, body_2: RigidBody) CollisionDirection 
     }
 }
 
+pub fn inside(point: Point, body: RigidBody) bool {
+    return body.rect.sdl_rect.x <= point.x and body.rect.sdl_rect.x + body.rect.sdl_rect.w >= point.x and
+        body.rect.sdl_rect.y <= point.y and body.rect.sdl_rect.y + body.rect.sdl_rect.h >= point.y;
+}
+
 pub const CollisionDirection = enum { None, Top, Bottom, Left, Right };
 
 pub const Character = struct {
@@ -317,6 +322,9 @@ pub const Event = struct {
         return switch (self.sdl_event.type) {
             c.SDL_QUIT => EventType.Quit,
             c.SDL_KEYDOWN => EventType.Keydown,
+            c.SDL_MOUSEBUTTONDOWN => EventType.MouseButtonDown,
+            c.SDL_MOUSEBUTTONUP => EventType.MouseButtonUp,
+            c.SDL_MOUSEMOTION => EventType.MouseMotion,
             else => EventType.Unknown,
         };
     }
@@ -329,6 +337,13 @@ pub const Event = struct {
             c.SDLK_RIGHT => KeyEvent.Right,
             c.SDLK_SPACE => KeyEvent.Space,
             else => KeyEvent.Unknown,
+        };
+    }
+
+    pub fn getMousePosition(self: Event) Point {
+        return Point{
+            .x = self.sdl_event.button.x,
+            .y = self.sdl_event.button.y,
         };
     }
 };
@@ -361,6 +376,9 @@ pub const EventType = enum {
     Keydown,
     /// User requested quit.
     Quit,
+    MouseButtonDown,
+    MouseButtonUp,
+    MouseMotion,
     /// Event not yet covered by the enum.
     Unknown,
 };
