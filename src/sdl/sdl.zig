@@ -160,14 +160,8 @@ pub const Renderer = struct {
         }
     }
 
-    pub fn init_text_texture(self: *const Renderer, textSurface: TextSurface) !Texture {
-        const surface: [*c]c.SDL_Surface = textSurface.sdl_surface;
-        const texture = c.SDL_CreateTextureFromSurface(self.sdl_renderer, surface) orelse return error.NullValue;
-        return Texture{ .sdl_texture = texture };
-    }
-
-    pub fn renderCopy(self: *const Renderer, texture: Texture, rect: Rect) !void {
-        if (c.SDL_RenderCopy(self.sdl_renderer, texture.sdl_texture, null, &rect.sdl_rect) != 0) {
+    pub fn render_texture(self: *const Renderer, texture: Texture) !void {
+        if (c.SDL_RenderCopy(self.sdl_renderer, texture.sdl_texture, null, &texture.rect.sdl_rect) != 0) {
             std.debug.print("failed to draw point: {s}\n", .{getError()});
             return error.RendererError;
         }
@@ -176,6 +170,14 @@ pub const Renderer = struct {
 
 pub const Texture = struct {
     sdl_texture: *c.SDL_Texture,
+    rect: Rect,
+
+    pub fn init(renderer: Renderer, font: Font, rect: Rect, message: []const u8) !Texture {
+        const renderText = c.TTF_RenderText_Solid(font.sdl_font, message.ptr, c.SDL_Color{ .b = rect.color.blue, .g = rect.color.green, .r = rect.color.red, .a = rect.color.alpha });
+        const texture = c.SDL_CreateTextureFromSurface(renderer.sdl_renderer, renderText) orelse return error.NullValue;
+        c.SDL_FreeSurface(renderText);
+        return Texture{ .sdl_texture = texture, .rect = rect };
+    }
 };
 
 /// Flags used when creating a rendering context.
@@ -448,20 +450,5 @@ pub const Font = struct {
         return Font{
             .sdl_font = font,
         };
-    }
-};
-
-pub const TextSurface = struct {
-    sdl_surface: [*c]c.SDL_Surface,
-
-    pub fn init(font: Font, color: Color, message: []const u8) !TextSurface {
-        const renderText = c.TTF_RenderText_Solid(font.sdl_font, message.ptr, c.SDL_Color{ .b = color.blue, .g = color.green, .r = color.red, .a = color.alpha });
-        return TextSurface{
-            .sdl_surface = renderText,
-        };
-    }
-
-    pub fn free(self: TextSurface) void {
-        c.SDL_FreeSurface(self.sdl_surface);
     }
 };
