@@ -24,12 +24,10 @@ pub fn build(b: *std.Build) void {
 
     //exe.addIncludePath(.{ .cwd_relative = "/opt/homebrew/include/SDL2" });
     //exe.addLibraryPath(.{ .cwd_relative = "/opt/homebrew/lib" });
-    exe.addLibraryPath(.{ .cwd_relative = "/nix/store/q47hdhsgy8ymwdp9vnpanxrjz88yp3av-SDL2-2.30.6/lib" });
-    exe.addIncludePath(.{ .cwd_relative = "/nix/store/6ss289vz4r78va3iw8i5fq46rs4ggiki-SDL2-2.30.6-dev/include/SDL2" });
+    // /usr/local/include/SLD2
+    exe.addIncludePath(.{ .cwd_relative = "/usr/local/include/SDL2" });
+    exe.addLibraryPath(.{ .cwd_relative = "/usr/local/lib" });
     exe.linkSystemLibrary("sdl2");
-
-    exe.addLibraryPath(.{ .cwd_relative = "/nix/store/s31hwbi4c1xw48816zf17ph478r5kvnm-SDL2_ttf-2.22.0/lib" });
-    exe.addIncludePath(.{ .cwd_relative = "/nix/store/s31hwbi4c1xw48816zf17ph478r5kvnm-SDL2_ttf-2.22.0/include/SDL2" });
     exe.linkSystemLibrary("sdl2_ttf");
 
     exe.linkLibC();
